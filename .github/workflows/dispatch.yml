@@ -1,0 +1,63 @@
+name: 同步主仓库并更新gh-pages分支
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'WIRKFLOW AI GIT SHA'
+        required: true
+        type: string
+
+jobs:
+  sync-modou-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          node-version: 16
+          repository: AI-Horizons-Collective/workflow-ai
+          ref: ${{inputs.sha}}
+          token: ${{ secrets.AI_HORIZONS_COLLECTIV_DISPATCH }}
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2.0.1
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: |
+          echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Runs a single command using the runners shell
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build workspace
+        run: cd ./packages/client && pnpm build
+
+      # - name: Hack spa 404
+        # run: cd ./packages/client/dist && echo "<\!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>404</title></head><body><script>const path=window.location.pathname.slice(1);localStorage.setItem('path',path);window.location.href='../'</script></body></html>" >> 404.html
+
+      - name: Deploy workspace
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages  # default: gh-pages
+          publish_dir: ./packages/client/dist
+          commit_message: deploy AI-Horizons-Collective/workflow-ai@${{inputs.sha}}
