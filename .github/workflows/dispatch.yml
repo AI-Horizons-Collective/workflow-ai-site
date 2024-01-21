@@ -9,7 +9,7 @@ on:
         type: string
 
 jobs:
-  sync-modou-repo:
+  sync-workflow-ai-repo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -54,7 +54,7 @@ jobs:
       # - name: Hack spa 404
         # run: cd ./packages/client/dist && echo "<\!DOCTYPE html><html lang=en><head><meta charset=UTF-8><title>404</title></head><body><script>const path=window.location.pathname.slice(1);localStorage.setItem('path',path);window.location.href='../'</script></body></html>" >> 404.html
 
-      - name: Deploy workspace
+      - name: Deploy workflow ai site
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
